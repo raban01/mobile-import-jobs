@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="store_select">
+        select store_id, store_cd, store_nm, 
+        district_id, district_cd, district_nm, 
+        op_area_id, op_area_nm, 
+        division_id, division_nm, 
+        rog_id, rog_cd, 
+        corporation_id, corporation_nm,
+        last_update_ts,
+        status_cd
+        from prd2_view_prod.LU_Store
+        where corporation_id=1 and
+        end_eff_dt>current_date
+    </entry>
+    
+    <entry key="ycsoffer_select">
+        select distinct 
+            CIC1.UPC_ID UPC_ID, 
+            CIC1.ROG_ID ROG_ID , 
+            MAX_CIC_UPC_ROG.MAX_UPC_ID MAX_UPC_ID, 
+            CIC1.last_eff_dt,
+            CIC1.last_update_ts, 
+            J4U_PRICE.promo_end_dt promo_end_dt,
+            J4U_PRICE.j4u_price_last_update_ts j4u_price_last_update_ts
+        from
+            prd2_view_prod.CIC_UPC_ROG CIC1
+            join ( select 
+                        j4u.upc_id, 
+                        store.rog_id,
+                        max(j4u.promo_end_dt) promo_end_dt, 
+                        j4u.last_update_ts
+                        j4u_price_last_update_ts from
+                        prd2_view_prod.j4u_store_price_upc_master j4u, 
+                        prd2_view_prod.lu_store    store
+                    where
+                    j4u.store_id=store.store_id
+                    group by j4u.upc_id,
+                    store.rog_id, j4u.last_update_ts
+
+                ) J4U_PRICE
+            on
+            CIC1.UPC_ID=J4U_PRICE.upc_id
+            and CIC1.rog_id=J4U_PRICE.rog_id
+            left join ( select max(CIC2.UPC_ID) MAX_UPC_ID, 
+                            CIC2.ROG_ID,
+                            CIC2.LOC_COMMON_RETAIL_CD
+                        from prd2_view_prod.CIC_UPC_ROG CIC2
+                        where
+                        CIC2.LOC_COMMON_RETAIL_CD&gt;0
+                        and
+                        CIC2.retail_status_eff_dt&lt;=current_date
+                        and
+                        CIC2.last_eff_dt&gt;=current_date
+                        and
+                        CIC2.first_eff_dt&lt;=current_date
+                        and CIC2.CORPORATION_ID=1
+                        group by
+                        CIC2.ROG_ID,CIC2.LOC_COMMON_RETAIL_CD
+                        ) MAX_CIC_UPC_ROG
+            on
+            CIC1.LOC_COMMON_RETAIL_CD=MAX_CIC_UPC_ROG.LOC_COMMON_RETAIL_CD
+            and
+            CIC1.ROG_ID=MAX_CIC_UPC_ROG.ROG_ID
+            where CIC1.LOC_COMMON_RETAIL_CD&gt;0
+            and CIC1.CORPORATION_ID=1
+            and CIC1.retail_status_eff_dt&lt;=current_date
+            and CIC1.last_eff_dt&gt;=current_date
+            and CIC1.first_eff_dt&lt;=current_date
+            group by CIC1.UPC_ID, CIC1.ROG_ID, MAX_CIC_UPC_ROG.MAX_UPC_ID ,J4U_PRICE.promo_end_dt,
+                     CIC1.last_eff_dt, CIC1.last_update_ts,J4U_PRICE.j4u_price_last_update_ts
+    </entry>
+	<entry key="openStore_select">
+		select STORE_ID, BANNER_NM, 
+		ADDRESS_LINE_1_TXT,
+		CITY_NM, 
+		STATE_PROVINCE_CD, 
+		POSTAL_CD, 
+		STORE_PHONE_NBR_TXT,
+		LATITUDE_DGR,
+		LONGITUDE_DGR
+		from emjo.w2gi_store
+	</entry>
+	<entry key="csoffer_select">
+		SELECT 
+			DISTINCT 
+				SIR.RETAIL_SCAN_CD AS OFFER_ID 
+				,SIR.STORE_ID 
+				,SIR.RETAIL_ORDERING_GROUP_CD 
+				,RRS.ITEM_DSC AS TITLEDSC1
+				,PACKAGE_SIZE_DSC AS PRODDSC1 
+				,SIR.CURRENT_RETAIL_PRICE_AMT AS PRICEVALUE1
+				,SIR.SAVINGS_VAL_AMT AS SAVINGSVALUE 
+				,SIR.PROMOTION_PRICE_AMT AS PRICEVALUE2
+				,SIR.PRICE_METHOD_CODE AS PRICE_METHOD_CODE
+				,SIR.PRICE_METHOD_SUBTYPE_CD AS PRICE_METHOD_SUBTYPE_CD
+				,SIR.EFFECTIVE_START_DT
+				,SIR.EFFECTIVE_END_DT
+				,cfc.customer_friendly_category_id 
+				,cfc.customer_friendly_category_nm
+		FROM  
+			emjo.STORE_ITEM_RETAIL_PRICE SIR
+			INNER JOIN 
+				emjo.ROG_RETAIL_SCAN RRS 
+			ON 
+				RRS.RETAIL_SCAN_CD = SIR.RETAIL_SCAN_CD 
+				AND RRS.RETAIL_ORDERING_GROUP_CD = SIR.RETAIL_ORDERING_GROUP_CD 
+			INNER JOIN 
+				emjo.CUSTOMER_FRIENDLY_CATEGORY CFC 
+			ON 
+				CFC.CUSTOMER_FRIENDLY_CATEGORY_ID = RRS.CUSTOMER_FRIENDLY_CATEGORY_ID
+		WHERE 
+			CURRENT_DATE BETWEEN CAST(SIR.EFFECTIVE_START_DT as DATE) AND CAST(SIR.EFFECTIVE_END_DT as DATE)
+	</entry>
+	<entry key="product_select">
+		select
+			upc_id,
+			category_id ,
+			CASE
+     			WHEN internet_item_dsc is not null then  internet_item_dsc
+      			WHEN internet_item_dsc  NOT= '' THEN internet_item_dsc
+      			ELSE    upc_dsc
+ 				END as upc_dsc,
+			upc_stat_cd,
+			last_update_ts as tera_last_update_ts,
+			group_id
+		from
+			prd2_view_prod.lu_upc
+		where
+			corporation_id=1
+			and upc_stat_cd &lt;&gt;'D';
+	</entry>
+	<entry key="dept_offer_select">
+		select luo.client_offer_id offer_id,
+			X.upc_id upc_id,
+			COP.last_update_ts cop_last_update_ts,
+			COP.promo_start_dt cop_promo_start_dt,
+			COP.promo_end_dt cop_promo_end_dt
+		from 
+			prd2_view_prod.lu_offer luo,
+			prd2_view_prod.COPIENT_ITEM_PROMO_PRC COP,
+			(select distinct upc_id as upc_id,
+			department_id as dept_id from prd2_view_prod.LU_UPC 
+		where 
+			corporation_id=1 
+			and upc_stat_cd &lt;&gt;'D' 
+			group by dept_id, upc_id ) as X	
+		where luo.offer_id=cop.offer_id
+			and luo.offer_end_dt&gt;=(CURRENT_DATE - 1)
+			and luo.offer_id&gt;0
+			and luo.client_offer_id&lt;&gt;'0'
+			and luo.ext_source_id in ('CouponsInc','NextGenStoreCpns',
+			'CellFire','DBMGAutoLoadStoreCpns', 'NextGenAutoLoadStoreCpns',
+			'Valassis', 'CouponsIncCA','ValassisCA',
+			'NextGenStoreCpnsCA','NextGenAutoLoadStoreCpnsCA','CATALINA')
+			AND cop.upc_id = X.dept_id
+			AND X.dept_id IN (
+			301,303,304,306,307,309,310,311,314,315,316,317,328,329,330,333,336,339,341
+			)
+		GROUP BY X.upc_id, luo.client_offer_id, COP.last_update_ts,
+			COP.promo_start_dt,
+			COP.promo_end_dt
+	</entry>
+	<entry key="j4uOffer_Select">
+		select offer_id, service_provider_nm,
+		external_offer_id,customer_friendly_program_id,
+		offer_status_type_id,
+		to_char(offer_effective_start_dt, 'yyyy-mm-dd HH:mm:ss') as
+		offer_eff_st_ts,
+		to_char(offer_effective_end_dt, 'yyyy-mm-dd HH:mm:ss')
+		as
+		offer_eff_end_ts,
+		to_char(last_update_ts, 'yyyy-mm-dd HH:mm:ss') as
+		offer_updt_ts
+		from emjo.offer where offer_effective_end_dt >=
+		current_date
+	</entry>
+	<entry key="j4uCop2UPCOffer">
+		SELECT
+          LUO.CLIENT_OFFER_ID as offer_id,
+          COP.UPC_ID as upc_id,
+          MAX(COP.last_update_ts) as cop_last_update_ts,
+          MAX(COP.promo_start_dt) as cop_promo_start_dt,
+          MAX(COP.promo_end_dt) as cop_promo_end_dt
+       FROM
+          prd2_view_prod.LU_OFFER LUO,
+          prd2_view_prod.COPIENT_ITEM_PROMO_PRC COP,
+          prd2_view_prod.lu_upc upc
+       WHERE
+          LUO.OFFER_ID = COP.OFFER_ID
+          and cop.upc_id=upc.upc_id
+          and upc.corporation_id=1
+          and upc_stat_cd &lt;&gt;'D' 
+          AND LUO.OFFER_END_DT &gt;= (CURRENT_DATE - 1)
+          and luo.offer_id&gt;0
+          and luo.CLIENT_OFFER_ID&lt;&gt;'0'
+          AND LUO.EXT_SOURCE_ID IN
+          ('CouponsInc','NextGenStoreCpns','CellFire','DBMGAutoLoadStoreCpns','NextGenAutoLoadStoreCpns','Valassis'
+          ,'CouponsIncCA','ValassisCA','NextGenStoreCpnsCA','NextGenAutoLoadStoreCpnsCA','CATALINA')
+       group by
+          LUO.CLIENT_OFFER_ID, COP.UPC_ID;
+	</entry>
+</properties>

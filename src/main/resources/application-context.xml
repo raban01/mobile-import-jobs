@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<context:property-placeholder order="1" location="classpath:env/env-${ENV:local}.properties, classpath:common.properties"/>
+	<util:properties id="emmdBatchQuery" location="classpath:emmd-batch-query.xml" />
+	<util:properties id="emmdCassandraQuery" location="classpath:emmd-cassandra-query.xml" />
+	
+	<import resource="classpath:datasources.xml" />
+	<import resource="classpath:hadoop.xml" />
+    <import resource="classpath:cassandra.xml" />
+    
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.smtp.host}" />
+		<property name="port" value="${mail.smtp.port}" />
+		<property name="protocol" value="${mail.smtp.protocol}" />
+
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">false</prop>
+				<prop key="mail.debug">false</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="emailService" class="com.safeway.app.emmd_batch.service.email.EmailServiceImpl">
+		<property name="mailSenderCustom" ref="mailSender" />
+		<property name="simpleMailMessage" ref="customeMailMessage" />
+		<property name="simpleAlertMessage" ref="customAlertMessage" />
+	</bean>
+
+	<bean id="customeMailMessage" class="org.springframework.mail.SimpleMailMessage">
+		<property name="to" value="${mail.to.normal}" />
+		<property name="from" value="${mail.from}" />
+		<property name="text">
+			<value>
+				<![CDATA[
+JobName : %s
+				
+	%s
+				
+Job Ran @ %s
+				]]>
+			</value>
+		</property>
+	</bean> 
+
+	<bean id="customAlertMessage" class="org.springframework.mail.SimpleMailMessage">
+		<property name="to" value="${mail.to.alert}" />
+		<property name="from" value="${mail.from}" />
+		<property name="text">
+			<value>
+				<![CDATA[
+JobName : %s
+				
+	%s
+				
+Job Ran @ %s
+				]]>
+			</value>
+		</property>
+	</bean> 
+</beans>

@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	
+   <entry key="store_schema">
+        CREATE TABLE emmd.store (store_id int, rog_id int, corporation_id int, corporation_nm text, district_cd text,
+  							district_id int, district_nm text, division_id int, division_nm text, op_area_id int,
+  							op_area_nm text, rog_cd text, store_cd text, store_nm text, 
+  							PRIMARY KEY ((store_id), rog_id))
+    </entry>
+    <entry key="store_sstable_select">
+        select store_id, store_cd, store_nm, district_id, 
+        district_cd, district_nm, op_area_id, op_area_nm, 
+        division_id, division_nm, rog_id, rog_cd, corporation_id, corporation_nm from emmd.store
+    </entry>
+   
+    <entry key="store_table">store</entry>
+    
+    <entry key="store_sstable_insert">
+        insert into emmd.store (store_id, store_cd, store_nm, district_id, 
+        district_cd, district_nm, op_area_id, op_area_nm, 
+        division_id, division_nm, rog_id, rog_cd, corporation_id, corporation_nm)
+        VALUES (?, ?, ?, ?, ?,?, ?, ?, ?,?,?, ?, ?, ?) 
+    </entry>
+    
+    <entry key="store_status_schema">
+		CREATE TABLE store_status (store_id int, aisle_order text,	status int,
+  			PRIMARY KEY ((store_id))
+    </entry>
+    
+    <entry key="store_status_sstable_select">
+        select store_id, aisle_order, status from emmd.store_status
+    </entry>
+    
+    <entry key="store_status_table">store_status</entry>
+    
+     <entry key="store_status_sstable_insert">
+        insert into emmd.store_status (store_id, aisle_order, status)
+        VALUES (?, ?, ?) 
+    </entry>
+    
+    <entry key="open_stores_schema">
+        create table emmd.open_stores (store_id int, banner_nm text, address_line_1_txt text, city_nm text,
+  							state_province_cd text,	postal_cd text, store_phone_nbr_txt text,
+  							primary key (store_id))
+    </entry>
+    
+    <entry key="open_stores_sstable_select">
+        select * from emmd.open_stores
+    </entry>
+    <entry key="open_stores_id_select">
+        select store_id from emmd.open_stores
+    </entry>
+    <entry key="open_stores_table">open_stores</entry>
+    
+    <entry key="open_stores_sstable_insert">
+        insert into emmd.open_stores (store_id, banner_nm, 
+        					address_line_1_txt, city_nm,
+  							state_province_cd,	postal_cd, store_phone_nbr_txt)
+        VALUES (?,?,?,?,?,?,?) 
+    </entry>
+    
+    <entry key="upc2j4u_schema">
+        create table emmd.upc2j4u (upc_id bigint, offer_id bigint, offer_type text, primary key ((upc_id), offer_id)) 
+    </entry>
+    
+    <entry key="upc2j4u_sstable_select">
+        select * from emmd.final_upc2j4u where upc_stat_cd != 'D' and (offer_status_type_id='A' or offer_status_type_id='L')
+        and (unix_timestamp(tera_last_update_ts)&gt;=?
+			or unix_timestamp(offer_last_updt_ts)&gt;=?
+			or unix_timestamp(cop_last_update_ts)&gt;=?)
+    </entry>
+    <entry key="upc2j4u_table">upc2j4u</entry>
+    
+    <entry key="upc2j4u_sstable_insert">
+        insert into emmd.upc2j4u (upc_id, offer_id, offer_type) VALUES (?, ?, ?) using ttl ?
+    </entry>
+    <entry key="upc2j4u_select_delete">
+        select upc_id,offer_id from emmd.final_upc2j4u 
+        where (upc_stat_cd='D' or (offer_status_type_id!='A' and offer_status_type_id!='L'))
+        and (unix_timestamp(tera_last_update_ts)&gt;=?
+			or unix_timestamp(offer_last_updt_ts)&gt;=?
+			or unix_timestamp(cop_last_update_ts)&gt;=?)
+    </entry>
+    <entry key="upc2j4u_delete">
+        DELETE FROM emmd.upc2j4u WHERE upc_id=? AND offer_id=?
+    </entry>
+     <!--   <entry key="deptoffer_sstable_select">
+        select * from emmd.deptupc2j4u where upc_stat_cd != 'D' and offer_status_type_id='A' 
+    </entry>
+    <entry key="deptupc2j4u_select_delete">
+        select upc_id,offer_id from emmd.deptupc2j4u where (cop_promo_end_dt < unix_timestamp or offer_effective_end_dt < unix_timestamp) AND (upc_stat_cd='D' or (offer_status_type_id!='A' and offer_status_type_id!='L'))
+    </entry>-->
+    <entry key="smic_schema">
+        create table emmd.smic (smic int, group_id int, cat_id int, cat_desc text, smic_desc text, dept_id int, search_step int, related_smic text, related_group_id text, primary key (smic)) 
+    </entry>
+    
+    <entry key="smic_sstable_select">
+        select * from emmd.smic
+    </entry>
+    <entry key="smic_table">smic</entry>
+    
+    <entry key="smic_sstable_insert">
+        insert into emmd.smic (smic, group_id, cat_id, cat_desc, smic_desc, dept_id, search_step, related_smic, related_group_id) VALUES (?,?,?,?,?,?,?,?,?) 
+    </entry>
+    
+    <entry key="product_schema">
+        CREATE TABLE emmd.product (
+  			upc_id bigint,
+  			cat_id int,
+  			j4u_cat text,
+  			solr_query text,
+  			upc_dsc text,
+  			PRIMARY KEY ((upc_id))
+		)
+    </entry>
+    
+    <entry key="product_sstable_select">
+        select upc_id,
+  			cat_id,
+  			j4u_cat,
+  			upc_dsc from emmd.product_ttl 
+  			where (upc_stat_cd is null or upc_stat_cd!='D')
+  			and unix_timestamp(tera_last_update_ts)&gt;=?
+    </entry>
+    
+   
+    <entry key="product_table">product</entry>
+    
+    <entry key="product_sstable_insert">
+        insert into emmd.product (upc_id,
+  			cat_id,
+  			j4u_cat,
+  			upc_dsc)
+        VALUES (?, ?, ?, ?) 
+    </entry>
+    <entry key="product_select_delete">
+        select upc_id from emmd.product_ttl where upc_stat_cd='D' and unix_timestamp(tera_last_update_ts)&gt;=?
+    </entry>
+    <entry key="product_delete">
+        delete from emmd.product where upc_id=? 
+    </entry>
+    
+    <entry key="csoffer_delete">
+        DELETE FROM emmd.cs_offer WHERE store_id=? and upc_id=?
+    </entry>
+    
+    <entry key="csoffer_schema">
+       CREATE TABLE emmd.cs_offer (store_id bigint
+       , upc_id bigint
+       , customer_friendly_category_id text
+       , customer_friendly_category_nm text
+       , effective_end_dt text
+       , effective_start_dt text
+       , image_url text
+       , price_method_code text
+       , price_method_subtype_cd text
+       , pricevalue1 text
+       , pricevalue2 text
+       , proddsc1 text
+       , savingsvalue text
+       , titledsc1 text
+       , PRIMARY KEY ((store_id), upc_id))
+    </entry>
+    
+    <entry key="csoffer_sstable_select">
+        SELECT 
+	        store_id
+	        , offer_id
+	        , customer_friendly_category_id
+	        , customer_friendly_category_nm
+	        , effective_end_dt
+	        , effective_start_dt
+	        , image_url
+	        , price_method_code
+	        , price_method_subtype_cd
+	        , pricevalue1
+	        , pricevalue2
+	        , proddsc1
+	        , savingsvalue
+	        , titledsc1
+	        , promo_end_dt
+        FROM cs_offer_ttl 
+        where  unix_timestamp(lastupdatets)&gt;=?
+			
+    </entry>
+    <entry key="csoffer_table">
+        cs_offer
+    </entry>
+    
+    <entry key="csoffer_sstable_insert">
+        INSERT INTO emmd.cs_offer (store_id, upc_id, customer_friendly_category_id
+        , customer_friendly_category_nm, effective_end_dt, effective_start_dt
+        , image_url, price_method_code, price_method_subtype_cd, pricevalue1
+        , pricevalue2, proddsc1, savingsvalue, titledsc1) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) using ttl ?
+    </entry>
+    
+    
+    <entry key="ycsoffer_delete">
+        DELETE FROM emmd.join_ycs_offer WHERE store_id=? and upc_id=? AND max_upc_id=?
+    </entry>
+    
+    <entry key="ycsoffer_schema">
+       CREATE TABLE emmd.join_ycs_offer (store_id bigint
+       , upc_id bigint
+       , max_upc_id bigint
+       , PRIMARY KEY ((store_id), upc_id, max_upc_id))
+    </entry>
+    
+    <entry key="ycsoffer_sstable_select">
+        SELECT 
+	        store_id
+	        , upc_id
+	        , max_upc_id
+	        , promo_end_dt
+        FROM join_ycs_offer 
+        where  unix_timestamp(last_update_ts)&gt;=?
+			or unix_timestamp(j4u_price_last_update_ts)&gt;=?
+			
+    </entry>
+    <entry key="ycsoffer_table">
+        join_ycs_offer
+    </entry>
+    
+    <entry key="ycsoffer_sstable_insert">
+        INSERT INTO emmd.join_ycs_offer (store_id, upc_id, max_upc_id) 
+        VALUES (?, ?, ?) using ttl ?
+    </entry>
+    
+    <entry key="store_status_schema">
+    	CREATE TABLE emmd.store_status (
+		  store_id int,
+		  aisle_order text,
+		  status int,
+		  PRIMARY KEY ((store_id)))
+    </entry>
+    
+    <entry key="store_status_sstable_select">
+        SELECT 
+	        store_id
+	        , aisle_order
+	        , status
+        FROM emmd.store_status 
+    </entry>
+    
+    <entry key="store_status_table">
+        store_status
+    </entry>
+    
+    <entry key="store_status_sstable_insert">
+        INSERT INTO emmd.store_status 
+        (store_id, aisle_order, status) 
+        VALUES (?, ?, ?)
+    </entry>
+    
+    <entry key="base_aisle_data_schema">
+       CREATE TABLE emmd.base_aisle_data (
+  			store_id int,
+  			category_id int,
+  			aisle text,
+  			category_nm text,
+  			group_id int,
+  			group_nm text,
+  			PRIMARY KEY ((store_id), category_id))
+    </entry>
+    
+    <entry key="base_aisle_data_sstable_select">
+    	SELECT 
+    		store_id
+    		, category_id
+    		, category_nm
+    		, group_id, group_nm
+    		, CASE WHEN CAST(bad.aisle AS int) > 30  THEN pam.aisle ELSE bad.aisle END AS aisle 
+    	FROM base_aisle_data bad LEFT OUTER JOIN perimeter_aisle_mapping pam ON bad.aisle=pam.department_id
+    </entry>
+    <entry key="base_aisle_data_table">
+        base_aisle_data
+    </entry>
+    
+    <entry key="base_aisle_data_sstable_insert">
+        INSERT INTO emmd.base_aisle_data 
+        (store_id, category_id, aisle
+        , category_nm, group_id, group_nm) 
+        VALUES (?, ?, ?, ?, ?, ?)
+    </entry>
+    
+    <entry key="store_weekly_ad_insert">
+    	INSERT INTO store_weekly_ad (store_id,response) VALUES (?, ?)
+    </entry>
+    
+    <entry key="offer_weekly_ad_insert">
+    	INSERT INTO offer_weekly_ad (offer_id,response) VALUES (?, ?) USING TTL 604800
+    </entry>
+    
+    <entry key="open_stores_select">
+    	SELECT DISTINCT store_id FROM open_stores
+    </entry>
+    
+    <entry key="active_stores_select">
+    	SELECT DISTINCT store_id FROM active_store
+    </entry>
+    
+    <entry key="offer2cat_schema">
+        create table emmd.offer2category (offer_id bigint, cat_id int, offer_type text, primary key (offer_id)) 
+    </entry>
+    <entry key="offer2cat_sstable_select">
+        select * from emmd.offer2category_max where from_unixtime(unix_timestamp(offer_effective_end_dt),'yyyy-MM-dd') &gt; from_unixtime(unix_timestamp(),'yyyy-MM-dd')
+    </entry>
+    <entry key="offer2cat_table">offer2category</entry>
+    
+    <entry key="offer2cat_sstable_insert">
+        insert into emmd.offer2category (offer_id, cat_id, offer_type) VALUES (?, ?, ?) using ttl ?
+    </entry>
+    <entry key="offer2cat_select_delete">
+        select * from emmd.offer2category where unix_timestamp(offer_effective_end_dt) &lt; unix_timestamp(from_unixtime(unix_timestamp(),'yyyy-MM-dd'))
+    </entry>
+    <entry key="offer2cat_delete">
+        DELETE FROM emmd.offer2category WHERE offer_id=?
+    </entry>
+    
+    <entry key="job_history_insert">
+        INSERT INTO job_history (job_name,time,job_full_name,job_mode,step,start_time,end_time,status,message, update_time, progress) 
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+    
+    </entry>
+    <entry key="job_import_select">
+        select * from emmd.job_import where job_name=
+    </entry>
+    <entry key="job_import_insert">
+        INSERT INTO job_import (job_name,job_date) VALUES (?,?)   
+    </entry>
+    <entry key="fivedollarfriday_select">
+        select text from emmd.five_dollar_friday limit 1;
+    </entry>
+    
+    <entry key="category_offer_table">category_offer</entry>
+    <entry key="category_offer_schema">create table emmd.category_offer (category_id int, offer_id bigint, primary key ((category_id),offer_id))</entry>
+    <entry key="category_offer_sstable_select">select * from emmd.category_offer_ttl</entry>
+    <entry key="category_offer_sstable_insert">insert into emmd.category_offer (category_id, offer_id) VALUES (?, ?) using ttl ?</entry>
+        
+    <entry key="group_offer_table">group_offer</entry>
+    <entry key="group_offer_schema">create table emmd.group_offer (group_id int, offer_id bigint, primary key ((group_id),offer_id))</entry>
+    <entry key="group_offer_sstable_select">select * from emmd.group_offer_ttl</entry>
+    <entry key="group_offer_sstable_insert">insert into emmd.group_offer (group_id, offer_id) VALUES (?, ?) using ttl ?</entry>
+    
+    <entry key="web_log_select_count_by_status">select * from nginx_count_by_status sort by request_date, status</entry>
+    <entry key="web_log_select_count_by_uri_status">select * from nginx_count_by_uri_status sort by request_date, status, cnt desc</entry>
+    
+    <entry key="web_log_insert_count_by_status">insert into emmd.web_log_stats (row_id, time, count, status) VALUES (?, ?, ?, ?) using ttl ?</entry>
+    <entry key="web_log_insert_count_by_uri_status">insert into emmd.web_log_stats (row_id, time, count, status, req_uri) VALUES (?, ?, ?, ?, ?) using ttl ?</entry>
+</properties>

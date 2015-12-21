@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+  		<withJansi>true</withJansi>
+	    <encoder>
+	      <pattern> %white(%d{yyyy-MM-dd HH:mm:ss.SSS})\t%highlight([%-5level])\t%cyan(%-65(%class{35}.%method[%line])):\t%message%n%red(%xException{10})</pattern>
+	    </encoder>
+  	</appender>
+  	<!-- <include resource="org/springframework/boot/logging/logback/base.xml"/> -->
+    
+    
+  	<!-- <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+	    <encoder>
+	      <pattern> %d{yyyy-MM-dd HH:mm:ss.SSS}\t[%-5level]\t%-65(%class{35}.%method[%line]):\t%message%n%xException</pattern>
+	    </encoder>
+  	</appender> -->
+
+	<appender name="EMMD_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>/appl/spool/logs/emmd/hdp-batch-emmd.log</file>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}\t[%-5level]\t%-65(%class{35}.%method[%line]):\t%message%n%xException{10}</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>/appl/spool/logs/emmd/hdp-batch-emmd-%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>15</maxHistory>
+		</rollingPolicy>
+	</appender>  	
+	<logger name="org.springframework" level="INFO"/>
+	<!-- <logger name="org.springframework.data.hadoop" level="INFO" />
+	<logger name="org.apache.hadoop" level="INFO" /> 
+	<logger name="org.springframework.jdbc" level="INFO" />-->
+	<logger name="org.apache.hive" level="INFO" />
+	<logger name="org.apache.thrift" level="INFO" />
+	<logger name="ch.qos.logback" level="OFF" />
+	<!-- <logger name="com.safeway.app" level="DEBUG" /> -->
+
+	<logger name="com.safeway.app">
+		<level value="ALL" />
+		<appender-ref ref="EMMD_APPENDER" />
+	</logger>
+	<root level="INFO">
+		<appender-ref ref="console" />
+	</root>
+
+</configuration> 
