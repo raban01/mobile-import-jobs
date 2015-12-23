@@ -134,7 +134,8 @@ public class WeeklyAdServiceImpl implements WeeklyAdService {
 				 + "Step 07 - Send final Notification");
         
 		// Send notification at the beginning of the import job process
-        emailService.sendMail(jobName + " Started", jobName, emailbody.toString().trim(), sdf.format(new Date()));
+        // Disable email notification
+        // emailService.sendMail(jobName + " Started", jobName, emailbody.toString().trim(), sdf.format(new Date()));
 
 		// Clear emailbody for next use
         emailbody.setLength(0);
@@ -190,7 +191,8 @@ public class WeeklyAdServiceImpl implements WeeklyAdService {
 					emailbody.append(r.getStoreId()+"\t\t"+r.getOffersCount()+"\t\t\t"+(r.getStatus().booleanValue()?"Success":"Fail")+"\n");
 				}
 				LOGGER.debug("Sending mail......");
-				emailService.sendMail(jobName + " cassandra status", emailbody.toString().trim());
+				// Disable email notification
+				// emailService.sendMail(jobName + " cassandra status", emailbody.toString().trim());
 
 				jobHistory.setUpdateTime(new Date());
 				jobHistory.setStatus(JobStatus.INPROGRESS.getCode());
@@ -201,6 +203,7 @@ public class WeeklyAdServiceImpl implements WeeklyAdService {
 			// Clear emailbody for next use
 	        emailbody.setLength(0);
 
+	        /* 
 			if(jobMode.equals(WeeklyAdJobMode.FULL)
 					|| jobMode.equals(WeeklyAdJobMode.REFRESH_EMMD)
 					|| jobMode.equals(WeeklyAdJobMode.REFRESH_EMMD_LIVE)){
@@ -241,14 +244,15 @@ public class WeeklyAdServiceImpl implements WeeklyAdService {
 				
 				LOGGER.debug("Sending mail......");
 				//LOGGER.debug(mailText.toString());
-				emailService.sendMail(jobName + " refresh status", emailbody.toString().trim());
+				// Disable email notification
+				// emailService.sendMail(jobName + " refresh status", emailbody.toString().trim());
 
 				jobHistory.setUpdateTime(new Date());
 				jobHistory.setStatus(JobStatus.INPROGRESS.getCode());
 				String progress=jobHistory.getProgress()+"|"+"Finished EMMD Refresh";
 				jobHistory.setProgress(progress);
 				jobHistoryCassandraDao.saveJobHistory(jobHistory);
-			}
+			} */
 			
 			
 			Date endDate = new Date();
@@ -283,7 +287,8 @@ public class WeeklyAdServiceImpl implements WeeklyAdService {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			emailService.sendAlertEmail(EMMDALERT002, jobName, "Exit with error " + new Date() + " " + e.getMessage(), sdf.format(new Date()));
+			// Disable email notification
+			// emailService.sendAlertEmail(EMMDALERT002, jobName, "Exit with error " + new Date() + " " + e.getMessage(), sdf.format(new Date()));
 		
 		}
 		LOGGER.info("Time taken for processing the weekly ad data : " + (ts2 - ts1) / 1000 + " seconds");

@@ -71,7 +71,8 @@ public abstract class BaseServiceImpl {
 		
 		
 		// Send notification at the beginning of the import job process
-        emailService.sendMail(jobName + " Started", jobName, emailBody.toString().trim(), sdf.format(new Date()));
+		// Disable email notification
+        // emailService.sendMail(jobName + " Started", jobName, emailBody.toString().trim(), sdf.format(new Date()));
 
 		// Clear emailbody for next use
         emailBody.setLength(0);
@@ -117,7 +118,8 @@ public abstract class BaseServiceImpl {
 			ts2 = System.currentTimeMillis();
 			emailBody.append("\t"+jobName + " Completed. " + "Time taken for processing: " + (ts2 - ts0) / 1000 + " seconds");	
 			
-			emailService.sendMail(jobName + " Completed", jobName,emailBody.toString().trim(), sdf.format(new Date()));
+			// Disable email notification
+			// emailService.sendMail(jobName + " Completed", jobName,emailBody.toString().trim(), sdf.format(new Date()));
 			
 			jobHistory.setEndTime(new Date());
 			jobHistory.setStatus(JobStatus.SUCCESS.getCode());
@@ -143,7 +145,8 @@ public abstract class BaseServiceImpl {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			emailService.sendAlertEmail(EMMDALERT002, jobName, emailBody.toString().trim() , sdf.format(new Date()));
+			// Disable email notification
+			// emailService.sendAlertEmail(EMMDALERT002, jobName, emailBody.toString().trim() , sdf.format(new Date()));
 			throw e;
 		}
 		LOGGER.info(jobName + ": Time taken for processing: " + (ts2 - ts0) / 1000 + " seconds");
